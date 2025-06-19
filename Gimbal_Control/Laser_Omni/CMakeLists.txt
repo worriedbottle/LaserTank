@@ -53,15 +53,7 @@ include_directories(Core/Inc Drivers/STM32F1xx_HAL_Driver/Inc/Legacy Drivers/STM
 
 add_definitions(-DDEBUG -DUSE_HAL_DRIVER -DSTM32F103xB)
 
-file(GLOB_RECURSE SOURCES
-    "Core/Src/*.c"
-    "Core/Startup/*.s"
-    "Drivers/STM32F1xx_HAL_Driver/Src/*.c")
-
-list(APPEND SOURCES
-        ${CMAKE_SOURCE_DIR}/Core/Src/as5600.c
-        ${CMAKE_SOURCE_DIR}/Core/Startup/startup_stm32f103c8tx.s
-)
+file(GLOB_RECURSE SOURCES "Core/*.*" "Drivers/*.*")
 
 set(LINKER_SCRIPT ${CMAKE_SOURCE_DIR}/STM32F103C8TX_FLASH.ld)
 
