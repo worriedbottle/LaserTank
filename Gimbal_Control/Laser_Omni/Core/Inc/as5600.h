@@ -6,8 +6,14 @@
 #define LASER_OMNI_AS5600_H
 
 #include "i2c.h"
+#include <stdlib.h>
+#include "usart.h"
+#include "stdio.h"
+#include "string.h"
 
 #define AS5600_ADDRESS_MAG           0x36
+#define PI 3.1415926
+
 
 typedef enum
 {
@@ -35,5 +41,7 @@ typedef enum
 
 void PrintMenu(void);
 void Programe_Run(void);
+float get_angle_without_track();
+float get_angle();
 
 #endif //LASER_OMNI_AS5600_H

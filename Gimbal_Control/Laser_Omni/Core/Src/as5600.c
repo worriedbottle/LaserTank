@@ -2,16 +2,15 @@
 // Created by WorriedBottle on 2025/6/18.
 //
 #include "as5600.h"
-#include "usart.h"
-#include "stdio.h"
-#include "string.h"
-
 
 uint16_t _rawStartAngle=0;
 uint16_t _zPosition=0;
 uint16_t _rawEndAngle=0;
 uint16_t _mPosition=0;
 uint16_t _maxAngle=0;
+
+float angle_prev=0;
+int32_t full_rotations=0;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -203,17 +202,6 @@ int16_t getMagnitude()
 int16_t getBurnCount()
 {
     return readOneByte(_zmco);
-}
-/*******************************************************
- Method: getRawAngle
- In: none
- Out: value of raw angle register
- Description: gets raw value of magnet position.
- start, end, and max angle settings do not apply
-******************************************************/
-int16_t AgetRawAngle(void)
-{
-    return readTwoBytes(_raw_ang_hi, _raw_ang_lo);
 }
 
 /*******************************************************
@@ -464,21 +452,41 @@ float convertRawAngleToDegrees(int16_t newAngle)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint16_t rawdata = 0;
-float degrees = 0;
-char message[50];
-void Programe_Run(void)
+//float degrees = 0;
+char message1[50];
+//void Programe_Run(void)
+//{
+//    uint8_t dect= 0;
+//    dect = detectMagnet();
+//    sprintf(message, "detectMagnet is %d\r\n", dect);
+//    HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
+////    printf("detectMagnet is %d\r\n",dect);
+//    rawdata = getRawAngle();
+//    sprintf(message, "rawdata is %d\r\n", rawdata);
+//    HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
+////    printf("rawdata is %d\r\n",rawdata);
+//    degrees = convertRawAngleToDegrees(rawdata);
+//    sprintf(message, "degrees is %f\r\n",degrees);
+//    HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
+////    printf("degrees is %f\r\n",degrees);
+//}
+
+float get_angle_without_track()
 {
-    uint8_t dect= 0;
-    dect = detectMagnet();
-    sprintf(message, "detectMagnet is %d\r\n", dect);
-    HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-//    printf("detectMagnet is %d\r\n",dect);
-    rawdata = getRawAngle();
-    sprintf(message, "rawdata is %d\r\n", rawdata);
-    HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-//    printf("rawdata is %d\r\n",rawdata);
-    degrees = convertRawAngleToDegrees(rawdata);
-    sprintf(message, "degrees is %f\r\n",degrees);
-    HAL_UART_Transmit(&huart1, (uint8_t *)message, strlen(message), HAL_MAX_DELAY);
-//    printf("degrees is %f\r\n",degrees);
+//    rawdata = getRawAngle();
+//    sprintf(message1, "rawdata is %d\r\n", rawdata);
+//    HAL_UART_Transmit(&huart1, (uint8_t *)message1, strlen(message1), HAL_MAX_DELAY);
+    return getRawAngle()*0.08789* PI/180;    //得到弧度制的角度
+}
+
+float get_angle()
+{
+    float val = get_angle_without_track();
+    float d_angle = val - angle_prev;
+    //计算旋转的总圈数
+    //通过判断角度变化是否大于80%的一圈(0.8f*6.28318530718f)来判断是否发生了溢出，如果发生了，则将full_rotations增加1（如果d_angle小于0）或减少1（如果d_angle大于0）。
+    if(abs(d_angle) > (0.8f*6.28318530718f)) full_rotations += (d_angle > 0 ) ? -1 : 1;
+    angle_prev = val;
+    return (float)full_rotations * 6.28318530718f + angle_prev;
+
 }
